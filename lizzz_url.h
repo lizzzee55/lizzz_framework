@@ -19,22 +19,37 @@ public:
 	std::string method;
 	std::string postData;
 	
+	std::map< std::string, std::string > getDataList;
 	std::map< std::string, std::string > postDataList;
+	
+	std::string get(std::string key);
+	std::string post(std::string key);
+	
+	
 	std::vector< std::string > headerList;
 
 
 	int parse(std::string url);
-	std::string getPost(std::string key);
+	int parsePos(std::string body);
+
 	void setHeader(std::string val);
 	std::string buildRequest(std::string postData = "");
 	
 	static int parseGetRequest(std::map< std::string, std::string > &output, std::string uri);
+	static int parsePostRequest(std::map< std::string, std::string > &output, std::string body);
 };
 
 #pragma once
 
 #include "lizzz_functions.h"
 
+inline int lizzz_url::parsePos(std::string body)
+{
+	if(body.length() > (32 * 1024)) return 0;
+	
+	parseGetRequest(postDataList, body);
+	return postDataList.size();
+}
 
 inline int lizzz_url::parse(std::string url) //https://aferon.com/qwe/index.php?asd=123&zxc=321#bla
 {
@@ -61,7 +76,7 @@ inline int lizzz_url::parse(std::string url) //https://aferon.com/qwe/index.php?
 		dir = output[0];
 	}
 	
-	parseGetRequest(postDataList, params);
+	parseGetRequest(getDataList, params);
 	
 	
 	lizzz_functions::lizzz_explode(output, url, "/");
@@ -120,10 +135,16 @@ inline int lizzz_url::parse(std::string url) //https://aferon.com/qwe/index.php?
 	return 1;
 }
 
-inline std::string lizzz_url::getPost(std::string key)
+inline std::string lizzz_url::get(std::string key)
+{
+	return getDataList[key];
+}
+
+inline std::string lizzz_url::post(std::string key)
 {
 	return postDataList[key];
 }
+
 
 inline void lizzz_url::setHeader(std::string val)
 {
@@ -201,7 +222,41 @@ inline int lizzz_url::parseGetRequest(std::map< std::string, std::string > &outp
 		
 		return output.size();
 	}
-	
+
 	return 0;
 }
 
+inline int lizzz_url::parsePostRequest(std::map< std::string, std::string > &output, std::string body)
+{
+	output.clear();
+
+
+	if(body.length() > 0)
+	{
+		std::vector< std::string > output_mass;
+		lizzz_functions::lizzz_explode(output_mass, body, "&");
+		
+		for (int i = 0; i < output_mass.size(); i++)
+		{
+
+			std::vector< std::string > outputPart;
+			lizzz_functions::explode_twice(outputPart, output_mass[i], "=");
+			if (outputPart.size() > 1)
+			{
+				std::string key = outputPart[0];
+				std::string val = outputPart[1];
+				
+				output[key] = val;
+			}
+			else {
+				std::string key = outputPart[0];
+				output[key] = 1;
+			}
+			
+		}
+		
+		return output.size();
+	}
+	
+	return 0;
+}

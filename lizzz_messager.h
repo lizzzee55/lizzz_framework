@@ -58,7 +58,7 @@ inline std::string lizzz_messager::builderRequest()
 	
 	if (!this->url)
 	{
-		lizzz_Log::Instance()->addLog("Error URL: NULL" );
+		lizzz_Log::Instance()->addLog("log_service.txt", "Error URL: NULL" );
 		return "";
 	}
 

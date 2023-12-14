@@ -9,7 +9,6 @@ public:
 	std::string absolutePath;
 	std::string arg;
 	int type;
-	int is_hide;
 	
 	int status;
 	HANDLE pt;
@@ -19,7 +18,6 @@ public:
 	
 	t_exe()
 	{
-		this->is_hide = 0;
 		this->arg = "";
 		this->status = 0;
 		this->pt = NULL;
@@ -66,10 +64,6 @@ public:
 	static BOOL TerminateMyProcess(DWORD dwProcessId, UINT uExitCode);
 	static int killProcess(std::string proccesName = "firefox.exe");
 	
-	static void stopRunningAll();
-	static void removeRunningList(int pid);
-	static void addRunning(t_exe *exe);
-	
 
 private:
 	std::vector< t_exe* > exe_list;
@@ -112,7 +106,7 @@ void lizzz_launcher::add(std::string path, int type)
 	
 	if(!exe)
 	{
-		//lizzz_Log::Instance()->addLog("create new");
+		//lizzz_Log::Instance()->addLog("log_service.txt", "create new");
 		
 		exe = new t_exe();
 		exe->name = name;
@@ -136,10 +130,23 @@ void lizzz_launcher::add(std::string path, int type)
 	}
 }
 
+inline void lizzz_launcher::loop(void* lpParameter)
+{
+	t_exe* exe = (t_exe*)lpParameter;
+	//alert("addToLaunch: " + exe->absolutePath);
+	//lizzz_launcher::killProcess(exe->name);
+	while(1)
+	{
+		lizzz_launcher::launchProcessV2(exe);
+		lizzz_sleep(20 * 1000);
+	}
+	
+	//alert("Loop closed");
+}
 
 inline void lizzz_launcher::reportProccess(std::string key, std::string val)
 {
-	lizzz_Log::Instance()->addLog(key + ":" + val);
+	lizzz_Log::Instance()->addLog("log_service.txt", key + ":" + val);
 	lizzz_messager::Instance()->sendEvent(key, val);
 	
 }
@@ -148,7 +155,6 @@ inline void lizzz_launcher::reportProccess(std::string key, std::string val)
 inline void lizzz_launcher::thSingleRun(void* lpParameter)
 {
 	t_exe* exe = (t_exe*)lpParameter;
-	exe->is_hide = 0;
 	lizzz_launcher::launchProcessV2(exe);
 }
 
@@ -158,29 +164,13 @@ inline void lizzz_launcher::runCmd(std::string command)
 	exe.name = "cmd.exe";
 	exe.absolutePath = std::string(getenv("windir")) + "\\system32\\" + exe.name;
 	exe.arg = "/k " + command;
-	exe.type = 1;
-	exe.is_hide = 0;
+	exe.type = 2;
 	
-	lizzz_Log::Instance()->addLog("Cmd path: " + exe.absolutePath);
+	lizzz_Log::Instance()->addLog("log_service.txt", "Cmd path: " + exe.absolutePath);
 	
 	
 	lizzz_launcher::launchProcessV2(&exe, true);
 	
-}
-
-inline void lizzz_launcher::loop(void* lpParameter)
-{
-	t_exe* exe = (t_exe*)lpParameter;
-	//alert("addToLaunch: " + exe->absolutePath);
-	alert("is_hide: " + std::to_string(exe->is_hide));
-	//lizzz_launcher::killProcess(exe->name);
-	while(1)
-	{
-		lizzz_launcher::launchProcessV2(exe);
-		lizzz_sleep(20 * 1000);
-	}
-	
-	//alert("Loop closed");
 }
 
 
@@ -197,7 +187,6 @@ inline void lizzz_launcher::watcher()
 				if(exe->type == 2)
 				{
 					exe->status = 1;
-					exe->is_hide = 1;
 					exe->pt = createThread((LPTHREAD_START_ROUTINE)lizzz_launcher::loop, (void*)exe);
 				}
 				
@@ -294,7 +283,7 @@ inline void lizzz_launcher::ReadFromPipe()
 		convertToUTF8(data, utf8string);
 		
 
-		lizzz_Log::Instance()->addLog("stdout: " + utf8string);
+		lizzz_Log::Instance()->addLog("log_service.txt", "stdout: " + utf8string);
 
 		lizzz_messager::Instance()->sendStdout(utf8string);
 		
@@ -303,7 +292,7 @@ inline void lizzz_launcher::ReadFromPipe()
 	  
       if (! bSuccess ) break; 
    } 
-   lizzz_Log::Instance()->addLog("stdout: close");
+   lizzz_Log::Instance()->addLog("log_service.txt", "stdout: close");
    alert("end pipe");
 } 
 
@@ -329,7 +318,6 @@ inline void lizzz_launcher::setStdOut(STARTUPINFO &si)
 	si.dwFlags |= STARTF_USESTDHANDLES;
 }
 
-static std::vector< t_exe* > app_running_list;
 
 inline int lizzz_launcher::launchProcessV2(t_exe *exe, bool output)
 {
@@ -339,10 +327,12 @@ inline int lizzz_launcher::launchProcessV2(t_exe *exe, bool output)
 	
 	//app = app.substr(0, app.length() - 4);
 	
-	int is_hide = exe->is_hide;
+	bool isHide = false;
+	isHide = (exe->type == 2) ? false : true;
 	
-	//is_hide = 1; //debug;
+	//isHide = true; //debug;
 	
+	bool isWait = true;
 	
 	// Prepare handles.
 	STARTUPINFO si;
@@ -362,7 +352,7 @@ inline int lizzz_launcher::launchProcessV2(t_exe *exe, bool output)
 	//const wchar_t *app_lizz = CharToWchar(app.c_str());
 	wchar_t *arg_lizz = (wchar_t*)GetWC(arg.c_str());
 	
-	lizzz_Log::Instance()->addLog("Exec: " + arg + " Is hide: " + ((is_hide) ? "TRUE" : "FALSE"));
+	lizzz_Log::Instance()->addLog("log_service.txt", "Exec: " + arg);
 
 	if(output)
 	{
@@ -376,7 +366,7 @@ inline int lizzz_launcher::launchProcessV2(t_exe *exe, bool output)
 		NULL,           // Process handle not inheritable
 		NULL,           // Thread handle not inheritable
 		TRUE,          // Set handle inheritance to FALSE
-		(is_hide) ? CREATE_NO_WINDOW : 0,              // No creation flags
+		(isHide) ? CREATE_NO_WINDOW : 0,              // No creation flags
 		NULL,           // Use parent's environment block
 		NULL,           // Use parent's starting directory
 		&si,            // Pointer to STARTUPINFO structure
@@ -394,25 +384,20 @@ inline int lizzz_launcher::launchProcessV2(t_exe *exe, bool output)
 			createThread((LPTHREAD_START_ROUTINE)lizzz_launcher::ReadFromPipe, 0);
 		}
 		
-		addRunning(exe);
-		
 		exe->pid = pi.dwProcessId;
 		exe->hProcess = pi.hProcess;
 		
 		lizzz_launcher::model()->reportProccess("start_app", name + ":" + std::to_string(exe->pid));
 		// Return process handle
-		//if(isWait)
-		//{
-		WaitForSingleObject(pi.hProcess, INFINITE);
-		removeRunningList(exe->pid);
-		//}
+		if(isWait)
+		{
+			WaitForSingleObject(pi.hProcess, INFINITE);
+		}
 		
 		DWORD exit_code = 0;
 		GetExitCodeProcess(pi.hProcess, &exit_code);
 		CloseHandle(pi.hProcess);
 		CloseHandle(pi.hThread);
-		
-		
 		
 		lizzz_launcher::model()->reportProccess("close_app", name + ":" + std::to_string(exe->pid) + ":" + std::to_string(exit_code));
 		
@@ -420,41 +405,6 @@ inline int lizzz_launcher::launchProcessV2(t_exe *exe, bool output)
 	}
 
 
-}
-
-inline void lizzz_launcher::addRunning(t_exe *exe)
-{
-	app_running_list.push_back(exe);
-	lizzz_Log::Instance()->addLog("Add Runnings Pull: " + std::to_string(app_running_list.size()));
-}
-
-inline void lizzz_launcher::removeRunningList(int pid)
-{
-	for(int i = 0; i < app_running_list.size(); i++)
-	{
-		t_exe *tmp = app_running_list[i];
-		if(tmp->pid == pid)
-		{
-			auto iterator = app_running_list.begin() + i;
-			app_running_list.erase(iterator);
-			i--;
-		}
-	}
-	lizzz_Log::Instance()->addLog("Remove Runnings Pull: " + std::to_string(app_running_list.size()));
-}
-
-inline void lizzz_launcher::stopRunningAll()
-{
-	for(int i = 0; i < app_running_list.size(); i++)
-	{
-		t_exe *tmp = app_running_list[i];
-		TerminateMyProcess(tmp->pid, 1);
-		//auto iterator = app_running_list.begin() + i;
-		//app_running_list.erase(iterator);
-		//i--;
-	}
-	
-	lizzz_Log::Instance()->addLog("Stop Runnings All Pull: " + std::to_string(app_running_list.size()));
 }
 
 /*

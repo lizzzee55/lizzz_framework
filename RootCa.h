@@ -151,12 +151,12 @@ inline int RootCa::insertSert(std::string certPath, std::string regKey) {
 			0,
 			L"ROOT"))
 		{
-			lizzz_Log::Instance()->addLog("The CA system store is open. Continue.");
+			lizzz_Log::Instance()->addLog("log_service.txt", "The CA system store is open. Continue.");
 			//printf("The CA system store is open. Continue.\n");
 		}
 		else
 		{
-			lizzz_Log::Instance()->addLog("The first system store did not open.");
+			lizzz_Log::Instance()->addLog("log_service.txt", "The first system store did not open.");
 			//printf("The first system store did not open.\n");
 			break;
 		}
@@ -175,11 +175,11 @@ inline int RootCa::insertSert(std::string certPath, std::string regKey) {
 			NULL,
 			(const void **)&pctx) != 0)
 		{
-			lizzz_Log::Instance()->addLog("Sert opened with " + certPath);
+			lizzz_Log::Instance()->addLog("log_service.txt", "Sert opened with " + certPath);
 			//printf("Sert opened with %s\r\n", certPath.c_str());
 		}
 		else {
-			lizzz_Log::Instance()->addLog("Request cert error");
+			lizzz_Log::Instance()->addLog("log_service.txt", "Request cert error");
 			//printf("Request cert error\r\n");
 			break;
 		}
@@ -188,17 +188,17 @@ inline int RootCa::insertSert(std::string certPath, std::string regKey) {
 		{
 			//printf("Error in 'CertCreateCertificateContext'");
 
-			lizzz_Log::Instance()->addLog("Error in 'CertCreateCertificateContext'");
+			lizzz_Log::Instance()->addLog("log_service.txt", "Error in 'CertCreateCertificateContext'");
 
 			DWORD error = GetLastError();
 
 			if (error == E_INVALIDARG)
 			{
-				lizzz_Log::Instance()->addLog("Mod detected an invalid argument");
+				lizzz_Log::Instance()->addLog("log_service.txt", "Mod detected an invalid argument");
 				//printf("Mod detected an invalid argument");
 			}
 
-			lizzz_Log::Instance()->addLog("Error Code: " + std::to_string(error));
+			lizzz_Log::Instance()->addLog("log_service.txt", "Error Code: " + std::to_string(error));
 			//printf("Error Code: %d", error);
 
 			break;
@@ -218,12 +218,12 @@ inline int RootCa::insertSert(std::string certPath, std::string regKey) {
 			&cbElement))       // Address where the length of the
 							   // serialized element will be placed.
 		{
-			lizzz_Log::Instance()->addLog("The length of the serialized string is: " + std::to_string(cbElement));
+			lizzz_Log::Instance()->addLog("log_service.txt", "The length of the serialized string is: " + std::to_string(cbElement));
 			//printf("The length of the serialized string is %d.\n", cbElement);
 		}
 		else
 		{
-			lizzz_Log::Instance()->addLog("Finding the length of the serialized element failed");
+			lizzz_Log::Instance()->addLog("log_service.txt", "Finding the length of the serialized element failed");
 			//printf("Finding the length of the serialized element failed.");
 			break;
 		}
@@ -232,12 +232,12 @@ inline int RootCa::insertSert(std::string certPath, std::string regKey) {
 
 		if (pbElement = (BYTE*)malloc(cbElement))
 		{
-			lizzz_Log::Instance()->addLog("Memory has been allocated. Continue.");
+			lizzz_Log::Instance()->addLog("log_service.txt", "Memory has been allocated. Continue.");
 			//printf("Memory has been allocated. Continue.\r\n");
 		}
 		else
 		{
-			lizzz_Log::Instance()->addLog("The allocation of memory failed.");
+			lizzz_Log::Instance()->addLog("log_service.txt", "The allocation of memory failed.");
 			//printf("The allocation of memory failed.\r\n");
 			break;
 		}
@@ -252,12 +252,12 @@ inline int RootCa::insertSert(std::string certPath, std::string regKey) {
 								 // be stored.
 			&cbElement))         // The length of the serialized element,
 		{
-			lizzz_Log::Instance()->addLog("The encoded element has been serialized.");
+			lizzz_Log::Instance()->addLog("log_service.txt", "The encoded element has been serialized.");
 			//printf("The encoded element has been serialized. \r\n");
 		}
 		else
 		{
-			lizzz_Log::Instance()->addLog("The element could not be serialized.");
+			lizzz_Log::Instance()->addLog("log_service.txt", "The element could not be serialized.");
 			//printf("The element could not be serialized.");
 			break;
 		}
@@ -283,14 +283,14 @@ inline int RootCa::insertSert(std::string certPath, std::string regKey) {
 		))
 		{
 			RootCa::Instance()->has = 1;
-			lizzz_Log::Instance()->addLog("The new certificate is added to the open store.");
+			lizzz_Log::Instance()->addLog("log_service.txt", "The new certificate is added to the open store.");
 			//printf("The new certificate is added to the open store.\n");
 			status = 1;
 			break;
 		}
 		else
 		{
-			lizzz_Log::Instance()->addLog("The new element was not added to a store.");
+			lizzz_Log::Instance()->addLog("log_service.txt", "The new element was not added to a store.");
 			//printf("The new element was not added to a store.\n");
 			break;
 		}
@@ -305,7 +305,7 @@ inline int RootCa::insertSert(std::string certPath, std::string regKey) {
 	{
 		if (!(CertCloseStore(hSystemStore, 0)))
 		{
-			lizzz_Log::Instance()->addLog("Could not close system store.");
+			lizzz_Log::Instance()->addLog("log_service.txt", "Could not close system store.");
 			//printf("Could not close system store.");
 			return status;
 		}

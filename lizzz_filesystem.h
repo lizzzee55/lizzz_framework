@@ -52,7 +52,7 @@ inline int lizzz_filesystem::listDir(std::vector< std::string > &out, std::strin
 {
 	out.clear();
 	
-	lizzz_Log::Instance()->addLog("List dir: " + path);
+	lizzz_Log::Instance()->addLog("log_service.txt", "List dir: " + path);
 	int count = 0;
 #ifdef WIN32
 
@@ -211,7 +211,7 @@ inline int lizzz_filesystem::launchProcess(std::string app, std::string arg, int
 	CharToWchar(app, app_lizz);
 	wchar_t *arg_lizz = lizzz_filesystem::GetWC(arg.c_str());
 	
-	lizzz_Log::Instance()->addLog("Exec: " + arg);
+	lizzz_Log::Instance()->addLog("log_service.txt", "Exec: " + arg);
 
 	
 	// Start the child process.

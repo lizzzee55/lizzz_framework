@@ -119,7 +119,7 @@ inline int lizzz_env::createDirRecursive(std::string path)
 		if (!isDir)
 		{
 			lizzz_filesystem::create_dir(tmp.c_str());
-			lizzz_Log::Instance()->addLog("Create dir: " + v[i] + " is_dir" + to_string(isDir));
+			lizzz_Log::Instance()->addLog("log_service.txt", "Create dir: " + v[i] + " is_dir" + to_string(isDir));
 		}
 
 	}

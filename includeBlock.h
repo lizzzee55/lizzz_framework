@@ -305,15 +305,6 @@ void CharToWchar(std::string input, std::wstring &output) //Конфертация из char*
 
 }
 
-void vs_output(const char* str)
-{
-	std::wstring out;
-	CharToWchar(str, out);
-
-	out = L"Debug: " + out;
-	OutputDebugStringW(out.c_str());
-}
-
 void toUTF8(const wchar_t* src, std::string& out)
 {
 	if (!src)

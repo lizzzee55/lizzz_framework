@@ -19,13 +19,12 @@ public:
 
 	std::vector< log_t* > log_struct_list;
 	
-	void setLogName(std::string _name);
-	void clear();
-	void addLog(std::string data);
+	void clear(std::string fileName);
+	void addLog(std::string fileName, std::string data);
+	static void console(const char *str, ...);
 	log_t* getLogByName(std::string name);
 	
 private:
-	std::string name;
 	pthread_mutex_t mutex;
 };
 
@@ -40,12 +39,7 @@ inline lizzz_Log::lizzz_Log()
 	pthread_mutex_init(&mutex, NULL);
 	this->current_dir = lizzz_env::getDir();
 
-	name = "default.log";
-}
 
-inline void lizzz_Log::setLogName(std::string _name)
-{
-	name = _name;
 }
 
 inline int lizzz_Log::setLogdir(std::string dir)
@@ -70,21 +64,39 @@ inline log_t* lizzz_Log::getLogByName(std::string name)
 	return result;
 }
 
-inline void lizzz_Log::clear()
+
+
+inline void lizzz_Log::console(const char *fmt, ...)
+{
+	char str[1000];
+
+	va_list args;
+	va_start(args, fmt);
+	vsprintf(str, fmt, args);
+	va_end(args);
+
+	printf(str);
+#ifdef WIN32
+	OutputDebugStringA(str);
+#endif
+	
+	lizzz_Log::Instance()->addLog("log_console.txt", str);
+}
+
+inline void lizzz_Log::clear(std::string fileName)
 {
 	pthread_mutex_lock(&mutex);
-	log_t* logI = lizzz_Log::Instance()->getLogByName(name);
+	log_t* logI = lizzz_Log::Instance()->getLogByName(fileName);
 	if(!logI)
 	{
-		std::string filePath = lizzz_Log::Instance()->current_dir + "\\" + name;
+		std::string filePath = lizzz_Log::Instance()->current_dir + "\\" + fileName;
 		lizzz_filesystem::file_put_contents(filePath, "");
-		this->addLog("Clear log");
+		this->addLog(fileName, "Clear log");
 	}
 	pthread_mutex_unlock(&mutex);
 }
 
-
-inline void lizzz_Log::addLog(std::string data)
+inline void lizzz_Log::addLog(std::string fileName, std::string data)
 {
 	pthread_mutex_lock(&mutex);
 
@@ -96,11 +108,11 @@ inline void lizzz_Log::addLog(std::string data)
 #endif
 
 	//OutputDebugStringA(fileName.c_str());
-	std::string filePath = lizzz_Log::Instance()->current_dir + "\\" + name;
+	std::string filePath = lizzz_Log::Instance()->current_dir + "\\" + fileName;
 
 	int fd = -1;
 
-	log_t* logI = lizzz_Log::Instance()->getLogByName(name);
+	log_t* logI = lizzz_Log::Instance()->getLogByName(fileName);
 	if (!logI)
 	{
 		lizzz_env::createDirRecursive(filePath);
@@ -116,4 +128,13 @@ inline void lizzz_Log::addLog(std::string data)
 	int w_len = write(logI->fd, data.data(), data.length());
 	pthread_mutex_unlock(&mutex);
 	
+}
+
+
+
+
+
+void LogClearAll()
+{
+
 }

@@ -25,12 +25,82 @@ public:
 	}
 };
 
+class buildSql
+{
+public:
+	std::map< std::string, std::string > strs;
+	std::map< std::string, int > ints;
+	std::string table;
+	std::string type;
+	int mode;
+	
+	buildSql(std::string table, std::string type = "insert", int mode = 0)
+	{
+		this->type = type;
+		this->table = table;
+		this->mode = mode;
+	}
+	void set(std::string field, std::string val)
+	{
+		this->strs[field] = val;
+	}
+	void set(std::string field, int val)
+	{
+		this->ints[field] = val;
+	}
+	std::string get()
+	{
+		std::string sql = "";
+		std::string sql_1 = "";
+		std::string sql_2 = "";
+		std::string sql_3 = "";
+		
+		std::map< std::string, std::string >::iterator it = strs.begin();
+		while(it != strs.end())
+		{
+			sql_1 += "`" + it->first + "`,";
+			sql_2 += "'" + it->second + "',";
+			sql_3 += "`" + it->first + "` = '" + it->second + "',";
+			++it;
+		}
+		
+		std::map< std::string, int >::iterator it2 = ints.begin();
+		while(it2 != ints.end())
+		{
+			sql_1 += "`" + it2->first + "`,";
+			sql_2 += "'" + to_string(it2->second) + "',";
+			sql_3 += "`" + it2->first + "` = '" + to_string(it2->second) + "',";
+			++it2;
+		}
+		
+		sql_1 = sql_1.substr(0, sql_1.length() - 1);
+		sql_2 = sql_2.substr(0, sql_2.length() - 1);
+		sql_3 = sql_3.substr(0, sql_3.length() - 1);
+			
+		if(this->type.find("insert") == 0)
+		{
+			
+			sql = "insert into `" + this->table + "` (";
+			
+			sql += sql_1 + ") VALUES (";
+			sql += sql_2 + ")";
+			if(this->mode == 1)
+			{
+				sql += " ON DUPLICATE KEY UPDATE " + sql_3;
+			}
+		}
+		return sql + ";";
+	}
+};
+
 class db_lizzz
 {
 	DECLARE_SINGLETON(db_lizzz);
 public:
 	db_lizzz();
 	int connect(std::string host, std::string user, std::string pass, std::string database, int port = 3306);
+	int check();
+	
 	db_resource* query(const char *query);
 	int insert(const char *query);
 	int update(const char *query);
@@ -57,9 +127,9 @@ inline db_lizzz::db_lizzz()
 	
 	std::string host = "185.43.6.164";
 	int port = 3306;
-	std::string user = "root";
-	std::string pass = "LSD2525625";
-	std::string database = "messanger";
+	std::string user = "lizzzee2";
+	std::string pass = "BiG162534";
+	std::string database = "exe_launcher";
 
 
 	connect(host, user, pass, database, port);
@@ -72,7 +142,16 @@ inline int db_lizzz::connect(std::string host, std::string user, std::string pas
     con = driver->connect(host, user, pass);
     /* Connect to the MySQL test database */
     con->setSchema(database);
+	
+	printf("is alive %d\r\n", con->isValid());
 
+	return 1;
+}
+
+inline int db_lizzz::check()
+{
+	if(!con->isValid())
+		con->reconnect();
 	return 1;
 }
 
@@ -176,6 +255,8 @@ inline db_resource* db_lizzz::query(const char *query)
 {
 	printf("Sql: %s\r\n", query);
 	
+	check();
+	
 	db_resource *resource = NULL;
 
 	try {
@@ -236,6 +317,8 @@ inline int db_lizzz::getData(std::map< std::string, std::string > &output, db_re
 {
 	output.clear();
 	
+	if(!resource) return 0;
+	
 	if (resource->res->next()) {
 		for (int l = 0; l < resource->num_fields; l++)
 		{
@@ -255,6 +338,8 @@ inline int db_lizzz::getData(std::map< std::string, std::string > &output, db_re
 
 inline int db_lizzz::insert(const char *query)
 {
+	check();
+	
 	printf("Sql: %s\r\n", query);
 	int result = 0;
 
@@ -295,6 +380,7 @@ inline int db_lizzz::insert(const char *query)
 
 inline int db_lizzz::update(const char *query)
 {
+	check();
 	printf("Sql: %s\r\n", query);
 	int result = 0;
 
@@ -315,16 +401,8 @@ inline int db_lizzz::update(const char *query)
 		std::cout << ", SQLState: " << e.getSQLState() << " )" << std::endl;
 	}
 
-	std::map< std::string, std::string > output;
-	db_resource* resource = db_lizzz::query("SELECT LAST_INSERT_ID() AS id");
-	
-	while(getData(output, resource))
-	{
-		result = 1;//atoi(it->second.c_str());
-	}
 
-
-	return result;
+	return 1;
 }
 
 
