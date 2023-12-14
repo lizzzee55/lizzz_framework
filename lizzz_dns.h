@@ -86,7 +86,7 @@ bool DNS::GetDns(const char* argv, in_addr* addr)
 	if (result != 0)
 	{
 		*addr = sa.sin_addr;
-		lizzz_Log::Instance()->addLog("log_service.txt", "Error GetDns:" + to_string(result) + " argv:" + argv);
+		lizzz_Log::Instance()->addLog("Error GetDns:" + to_string(result) + " argv:" + argv);
 		//LOG("result %d %s\r\n", result, argv);
 		return true;
 	}

@@ -19,7 +19,13 @@ public:
 	std::string method;
 	std::string postData;
 	
+	std::map< std::string, std::string > getDataList;
 	std::map< std::string, std::string > postDataList;
+	
+	std::string get(std::string key);
+	std::string post(std::string key);
+	
+	
 	std::vector< std::string > headerList;
 
 
@@ -30,6 +36,7 @@ public:
 	std::string buildRequest(std::string postData = "");
 	
 	static int parseGetRequest(std::map< std::string, std::string > &output, std::string uri);
+	static int parsePostRequest(std::map< std::string, std::string > &output, std::string body);
 };
 
 #pragma once
