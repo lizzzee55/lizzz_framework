@@ -99,8 +99,6 @@ class db_lizzz
 public:
 	db_lizzz();
 	int connect(std::string host, std::string user, std::string pass, std::string database, int port = 3306);
-	int check();
-	
 	db_resource* query(const char *query);
 	int insert(const char *query);
 	int update(const char *query);
@@ -108,6 +106,7 @@ public:
 	int getData(std::map< std::string, std::string > &output, db_resource* resource);
 
 	int close();
+	int check();
 
 private:
 	sql::Driver* driver;
@@ -142,8 +141,6 @@ inline int db_lizzz::connect(std::string host, std::string user, std::string pas
     con = driver->connect(host, user, pass);
     /* Connect to the MySQL test database */
     con->setSchema(database);
-	
-	printf("is alive %d\r\n", con->isValid());
 
 	return 1;
 }
@@ -151,7 +148,11 @@ inline int db_lizzz::connect(std::string host, std::string user, std::string pas
 inline int db_lizzz::check()
 {
 	if(!con->isValid())
+	{
+		printf("db recconect\r\n");
 		con->reconnect();
+	}
+	
 	return 1;
 }
 
@@ -159,6 +160,7 @@ inline int db_lizzz::close()
 {
 	if(con)
 	{
+		printf("db reload");
 		con->close();
 		delete con;
 		return 1;
@@ -253,7 +255,9 @@ inline std::vector<std::map<std::string, std::string> > db_lizzz::query(const ch
 //mysql connector 5.7 yum install mysql-connector-odbc
 inline db_resource* db_lizzz::query(const char *query)
 {
-	printf("Sql: %s\r\n", query);
+	printf("Sql query: %s\r\n", query);
+	
+	pthread_mutex_lock(&mutex);
 	
 	check();
 	
@@ -279,8 +283,6 @@ inline db_resource* db_lizzz::query(const char *query)
 			resource->field_name.push_back(field);
 
 		}
-		
-		
 
 		if(resource->field_name.size() == 0) 
 		{
@@ -309,6 +311,9 @@ inline db_resource* db_lizzz::query(const char *query)
 	}
 	//printf("Sql finish\r\n");
 
+	pthread_mutex_unlock(&mutex);
+	
+	printf("Sql query OK: %s\r\n", query);
 
 	return resource;
 }
@@ -316,8 +321,6 @@ inline db_resource* db_lizzz::query(const char *query)
 inline int db_lizzz::getData(std::map< std::string, std::string > &output, db_resource* resource)
 {
 	output.clear();
-	
-	if(!resource) return 0;
 	
 	if (resource->res->next()) {
 		for (int l = 0; l < resource->num_fields; l++)
@@ -338,9 +341,58 @@ inline int db_lizzz::getData(std::map< std::string, std::string > &output, db_re
 
 inline int db_lizzz::insert(const char *query)
 {
+	printf("Sql insert: %s\r\n", query);
+	int result = 0;
+	pthread_mutex_lock(&mutex);
+	
+	check();
+
+	try {
+
+		sql::Statement* stmt;
+		stmt = con->createStatement();
+		stmt->execute(query);
+		delete stmt;
+
+	}
+	catch (sql::SQLException& e) {
+		std::cout << "# ERR: SQLException in " << __FILE__;
+		std::cout << "(" << __FUNCTION__ << ") on line "
+			<< __LINE__ << std::endl;
+		std::cout << "# ERR: " << e.what();
+		std::cout << " (MySQL error code: " << e.getErrorCode();
+		std::cout << ", SQLState: " << e.getSQLState() << " )" << std::endl;
+	}
+	
+	pthread_mutex_unlock(&mutex);
+	printf("Sql insert OK: %s\r\n", query);
+
+	std::map< std::string, std::string > output;
+	db_resource* resource = db_lizzz::query("SELECT LAST_INSERT_ID() AS id");
+	
+	while(getData(output, resource))
+	{
+		//int size = resource->field_name.size();
+		//for(int i = 0; i < size; i++)
+		//{
+		//	printf("lastid %s <size %d> id %s\r\n", resource->field_name[i].c_str(), size, output[""].c_str());
+		//}
+		result = 1;//atoi(it->second.c_str());
+	}
+
+	
+
+	return result;
+}
+
+inline int db_lizzz::update(const char *query)
+{
+	printf("Sql update: %s\r\n", query);
+	
+	pthread_mutex_lock(&mutex);
+	
 	check();
 	
-	printf("Sql: %s\r\n", query);
 	int result = 0;
 
 	try {
@@ -365,44 +417,11 @@ inline int db_lizzz::insert(const char *query)
 	
 	while(getData(output, resource))
 	{
-		//int size = resource->field_name.size();
-		//for(int i = 0; i < size; i++)
-		//{
-		//	printf("lastid %s <size %d> id %s\r\n", resource->field_name[i].c_str(), size, output[""].c_str());
-		//}
 		result = 1;//atoi(it->second.c_str());
 	}
 
-
-
+	pthread_mutex_unlock(&mutex);
 	return result;
-}
-
-inline int db_lizzz::update(const char *query)
-{
-	check();
-	printf("Sql: %s\r\n", query);
-	int result = 0;
-
-	try {
-
-		sql::Statement* stmt;
-		stmt = con->createStatement();
-		stmt->execute(query);
-		delete stmt;
-
-	}
-	catch (sql::SQLException& e) {
-		std::cout << "# ERR: SQLException in " << __FILE__;
-		std::cout << "(" << __FUNCTION__ << ") on line "
-			<< __LINE__ << std::endl;
-		std::cout << "# ERR: " << e.what();
-		std::cout << " (MySQL error code: " << e.getErrorCode();
-		std::cout << ", SQLState: " << e.getSQLState() << " )" << std::endl;
-	}
-
-
-	return 1;
 }
 
 
