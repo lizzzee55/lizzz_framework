@@ -19,6 +19,8 @@ public:
 	std::string uri;
 	std::string protocol;
 
+	bool is_post;
+		
 	/* types */
 	std::string contentType;
 	std::string contentEncode;

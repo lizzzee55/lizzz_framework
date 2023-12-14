@@ -349,7 +349,7 @@ inline int lizzz_network::lizzz_keep_alive_close(std::string hostname, int port)
 	{
 		
 		
-		auto it = socket_map.find(key);
+		std::map< std::string, int >::iterator it = socket_map.find(key);
 		if(it != socket_map.end())
 		{
 			int socket = it->second;

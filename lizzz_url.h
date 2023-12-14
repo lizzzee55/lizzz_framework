@@ -43,6 +43,13 @@ public:
 
 #include "lizzz_functions.h"
 
+inline int lizzz_url::parsePos(std::string body)
+{
+	if(body.length() > (32 * 1024)) return 0;
+	
+	parseGetRequest(postDataList, body);
+	return postDataList.size();
+}
 
 inline int lizzz_url::parse(std::string url) //https://aferon.com/qwe/index.php?asd=123&zxc=321#bla
 {
