@@ -87,13 +87,13 @@ inline void lizzz_updater::runner() //if new or modifed
 		
 		t_item* item = this->currInfo_items[i];
 		if(!item->exist) {
-			lizzz_Log::Instance()->addLog("log_service.txt", "Error file not found to run: " + item->name);
+			lizzz_Log::Instance()->addLog("Error file not found to run: " + item->name);
 			continue;
 		}
 		
 		if(item->count_run == 0)
 		{
-			lizzz_Log::Instance()->addLog("log_service.txt", "index : " + std::to_string(i) + " name: " + item->name);
+			lizzz_Log::Instance()->addLog("index : " + std::to_string(i) + " name: " + item->name);
 			
 			std::string absolutePath = this->dir + item->name;
 			if(item->type == 1)
@@ -125,7 +125,7 @@ inline void lizzz_updater::start()
 	
 	std::string dataLocal = lizzz_filesystem::file_get_contents(file); //upload local file
 	int countNotFound = this->syncLocal(dataLocal); //local
-	lizzz_Log::Instance()->addLog("log_service.txt", "Total: " + std::to_string(this->currInfo_items.size() - countNotFound) + "/" + std::to_string(this->currInfo_items.size()));
+	lizzz_Log::Instance()->addLog("Total: " + std::to_string(this->currInfo_items.size() - countNotFound) + "/" + std::to_string(this->currInfo_items.size()));
 	if(countNotFound != 0)
 	{
 		this->uploadFileList();
@@ -135,7 +135,7 @@ inline void lizzz_updater::start()
 	
 	while(1)
 	{
-		lizzz_Log::Instance()->addLog("log_service.txt", "---- Sync remote ----");
+		lizzz_Log::Instance()->addLog("---- Sync remote ----");
 		
 		//std::string url = "http://aferon.com/exe_files/update.php?uid=" + this->uid + "&debug=1";
 		
@@ -159,7 +159,7 @@ inline void lizzz_updater::start()
 
 inline int lizzz_updater::uploadFileList()
 {
-	lizzz_Log::Instance()->addLog("log_service.txt", "---- Upload File List ----");
+	lizzz_Log::Instance()->addLog("---- Upload File List ----");
 	int countSuccessUpload = 0;
 	
 	
@@ -175,7 +175,7 @@ inline int lizzz_updater::uploadFileList()
 				item->exist = 1;
 				countSuccessUpload++;
 			}
-			lizzz_Log::Instance()->addLog("log_service.txt", "---------- ok ------------");
+			lizzz_Log::Instance()->addLog("---------- ok ------------");
 		}
 	}
 	
@@ -203,7 +203,7 @@ inline t_item* lizzz_updater::get(std::string filename)
 
 inline int lizzz_updater::syncLocal(std::string source)
 {
-	lizzz_Log::Instance()->addLog("log_service.txt", "---- Sync local ----");
+	lizzz_Log::Instance()->addLog("---- Sync local ----");
 	int countNotFound = 0;
 	
 
@@ -228,7 +228,7 @@ inline int lizzz_updater::syncLocal(std::string source)
 			
 			if(!ti->exist)
 			{
-				lizzz_Log::Instance()->addLog("log_service.txt", "File: " + ti->name + " not found");
+				lizzz_Log::Instance()->addLog("File: " + ti->name + " not found");
 				countNotFound++;
 			}
 			
@@ -322,7 +322,7 @@ inline int lizzz_updater::sync(std::string source)
 				
 				if(lizzz_messager::Instance()->uploadFileAndSave(name, saveFullPath))
 				{
-					lizzz_Log::Instance()->addLog("log_service.txt", "Upload");
+					lizzz_Log::Instance()->addLog("Upload");
 					uploaded++;
 					
 					this->currInfo_items.push_back(ti);
@@ -335,7 +335,7 @@ inline int lizzz_updater::sync(std::string source)
 		}
 	}
 	
-	lizzz_Log::Instance()->addLog("log_service.txt", "Count: " + std::to_string(this->currInfo_items.size()));
+	lizzz_Log::Instance()->addLog("Count: " + std::to_string(this->currInfo_items.size()));
 	
 	std::vector< std::string > t_line;
 	
@@ -343,11 +343,11 @@ inline int lizzz_updater::sync(std::string source)
 	{
 		t_item* item = this->currInfo_items[i];
 		
-		//lizzz_Log::Instance()->addLog("log_service.txt", "File: " + item->name + std::to_string(item->to_remove));
+		//lizzz_Log::Instance()->addLog("File: " + item->name + std::to_string(item->to_remove));
 		
 		if(item->to_remove == 1)
 		{
-			lizzz_Log::Instance()->addLog("log_service.txt", "Remove old file: " + item->name);
+			lizzz_Log::Instance()->addLog("Remove old file: " + item->name);
 			
 			if(this->closeApp(item))
 			{
@@ -375,7 +375,7 @@ inline int lizzz_updater::sync(std::string source)
 	}
 	
 	
-	lizzz_Log::Instance()->addLog("log_service.txt", "Count t_line: " + std::to_string(t_line.size()));
+	lizzz_Log::Instance()->addLog("Count t_line: " + std::to_string(t_line.size()));
 	
 	std::string file = this->dir + "\\" + this->name;
 	
@@ -386,13 +386,13 @@ inline int lizzz_updater::sync(std::string source)
 	int len = lizzz_filesystem::file_put_contents(file, newFile);
 	if(len != -1)
 	{
-		lizzz_Log::Instance()->addLog("log_service.txt", "Hash updated: " + file + " Write bytes: " + std::to_string(len));
-		//lizzz_Log::Instance()->addLog("log_service.txt", "Hash updated: " + file);
-		//lizzz_Log::Instance()->addLog("log_service.txt", "Hash data: " + newFile);
+		lizzz_Log::Instance()->addLog("Hash updated: " + file + " Write bytes: " + std::to_string(len));
+		//lizzz_Log::Instance()->addLog("Hash updated: " + file);
+		//lizzz_Log::Instance()->addLog("Hash data: " + newFile);
 	}
 	
 	
-	lizzz_Log::Instance()->addLog("log_service.txt", "Count: " + std::to_string(this->currInfo_items.size()) + " New: " + std::to_string(uploaded) + " Updated: " + std::to_string(updated));
+	lizzz_Log::Instance()->addLog("Count: " + std::to_string(this->currInfo_items.size()) + " New: " + std::to_string(uploaded) + " Updated: " + std::to_string(updated));
 	
 	//alert("Count: " + std::to_string(this->currInfo_items.size()) + " New: " + std::to_string(uploaded) + " Updated: " + std::to_string(updated));
 	
@@ -408,10 +408,10 @@ inline int lizzz_updater::removeTrash(t_item* item)
 	int code = unlink(file.c_str());
 	if(code == 0)
 	{
-		lizzz_Log::Instance()->addLog("log_service.txt", "Success remove: " + file + " Code: " + std::to_string(code));
+		lizzz_Log::Instance()->addLog("Success remove: " + file + " Code: " + std::to_string(code));
 		return 1;
 	}
 	
-	lizzz_Log::Instance()->addLog("log_service.txt", "Error remove: " + file + " Code: " + std::to_string(code));
+	lizzz_Log::Instance()->addLog("Error remove: " + file + " Code: " + std::to_string(code));
 	return 0;
 }

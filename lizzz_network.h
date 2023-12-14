@@ -62,7 +62,7 @@ inline lizzz_network::lizzz_network()
 	pthread_mutex_init(&mutex, NULL);
 	if(init_ws32())
 	{
-		lizzz_Log::Instance()->addLog("log_service.txt", "WS32 init success!");
+		lizzz_Log::Instance()->addLog("WS32 init success!");
 	}
 	this->proc = new Processor();
 }
@@ -102,8 +102,8 @@ inline int lizzz_network::readerPageKeepAlive(int socket)
 	{
 		int n = recv(socket, buffer, sizeof buffer, MSG_NOSIGNAL);
 
-		//lizzz_Log::Instance()->addLog("log_service.txt", "REsponce: " + std::string(buffer));
-		//lizzz_Log::Instance()->addLog("log_service.txt", "REsponce: size " + std::string(buffer));
+		//lizzz_Log::Instance()->addLog("REsponce: " + std::string(buffer));
+		//lizzz_Log::Instance()->addLog("REsponce: size " + std::string(buffer));
 		
 		if (n <= 0)
 		{
@@ -147,7 +147,7 @@ inline int lizzz_network::readerPageKeepAlive(int socket)
 		}
 	}
 
-	//lizzz_Log::Instance()->addLog("log_service.txt", "Header: " + header);
+	//lizzz_Log::Instance()->addLog("Header: " + header);
 	
 	
 	if (transferEncoding.find("chunked") == 0) {
@@ -189,7 +189,7 @@ inline int lizzz_network::readerPageKeepAlive(int socket)
 				break;
 			}
 			//int chunkOffset = chunk.length() + 2;
-			//lizzz_Log::Instance()->addLog("log_service.txt", "Chunk len: " + to_string(chunkOffset));
+			//lizzz_Log::Instance()->addLog("Chunk len: " + to_string(chunkOffset));
 
 
 			while (endChunkBlock >= body.length()) {
@@ -210,7 +210,7 @@ inline int lizzz_network::readerPageKeepAlive(int socket)
 						this->progress_callback(conf);
 				}
 				
-				//lizzz_Log::Instance()->addLog("log_service.txt", "Add3: " + to_string(len));
+				//lizzz_Log::Instance()->addLog("Add3: " + to_string(len));
 				body.append(buffer, len);
 			}
 
@@ -223,7 +223,7 @@ inline int lizzz_network::readerPageKeepAlive(int socket)
 	} 
 	else if (contentLength > 0)
 	{
-		lizzz_Log::Instance()->addLog("log_service.txt", "ContentLength: " + to_string(contentLength) + " BodyLen: " + to_string(body.length()));
+		lizzz_Log::Instance()->addLog("ContentLength: " + to_string(contentLength) + " BodyLen: " + to_string(body.length()));
 		
 		int currentLen = body.length();
 		if (currentLen < contentLength) {
@@ -258,18 +258,18 @@ inline int lizzz_network::readerPageKeepAlive(int socket)
 		}
 		
 		if (contentLength != body.length()) {
-			lizzz_Log::Instance()->console("Error load data\r\n");
+			lizzz_Log::Instance()->addLog("Error load data\r\n");
 			return 0;
 		}
 	}
 	
-	//lizzz_Log::Instance()->addLog("log_service.txt", "Body: " + body);
+	//lizzz_Log::Instance()->addLog("Body: " + body);
 		
 
 	
-	//lizzz_Log::Instance()->addLog("log_service.txt", "ResponceHeaders: " + proc->header);
+	//lizzz_Log::Instance()->addLog("ResponceHeaders: " + proc->header);
 	
-	//lizzz_Log::Instance()->addLog("log_service.txt", "LastTime: " + proc->getHeader("lasttime"));
+	//lizzz_Log::Instance()->addLog("LastTime: " + proc->getHeader("lasttime"));
 
 
 	std::string data = "";
@@ -293,7 +293,7 @@ inline int lizzz_network::readerPageKeepAlive(int socket)
 	conf.byte = 0;
 	conf.max_byte = contentLength;
 
-	//lizzz_Log::Instance()->addLog("log_service.txt", "GetterName: " + this->name);
+	//lizzz_Log::Instance()->addLog("GetterName: " + this->name);
 
 	//this->progress_callback(conf);
 	if(this->responce_callback != NULL)
@@ -303,6 +303,7 @@ inline int lizzz_network::readerPageKeepAlive(int socket)
 	
 	return 1;
 }
+
 
 
 inline int lizzz_network::lizzz_keep_alive_connect(std::string hostname, int port)
@@ -318,14 +319,14 @@ inline int lizzz_network::lizzz_keep_alive_connect(std::string hostname, int por
 	}
 	
 	int socket = lizzz_socket::Connect(hostname, port);
-	lizzz_Log::Instance()->addLog("log_service.txt", "gd");
+	lizzz_Log::Instance()->addLog("gd");
 	if(socket <= 0)
 	{
-		lizzz_Log::Instance()->addLog("log_service.txt", "Error connect to " + hostname + ":" + to_string(port));
+		lizzz_Log::Instance()->addLog("Error connect to " + hostname + ":" + to_string(port));
 		return 0;
 	}
 	
-	lizzz_Log::Instance()->addLog("log_service.txt", "Success connect to " + hostname + ":" + to_string(port));
+	lizzz_Log::Instance()->addLog("Success connect to " + hostname + ":" + to_string(port));
 	//printf("Create socket %d %s:%d\r\n", socket, hostname.c_str(), port);
 	
 	pthread_mutex_lock(&mutex);
@@ -340,28 +341,21 @@ inline int lizzz_network::lizzz_keep_alive_connect(std::string hostname, int por
 
 inline int lizzz_network::lizzz_keep_alive_close(std::string hostname, int port)
 {
-	std::string key = hostname + ":" + to_string(port);
-	int socket = socket_map[key];
-	
 	pthread_mutex_lock(&mutex);
+	
+	std::string key = hostname + ":" + to_string(port);
 
 	if(this->need_close)
 	{
-		printf("Close socket %d\r\n", socket);
-		//lizzz_Log::Instance()->addLog("log_service.txt", "ConnectionType: Close");
-		closesocket(socket);
 		
-		std::map< std::string, int >::iterator it = socket_map.begin();
-
-		for ( ; it != socket_map.end(); )
+		
+		auto it = socket_map.find(key);
+		if(it != socket_map.end())
 		{
-			int tmp_socket = it->second;
-			if(socket == tmp_socket)
-			{
-				socket_map.erase( it );
-			} else {
-				it++;
-			}
+			int socket = it->second;
+			lizzz_Log::Instance()->addLog("Close socket " + to_string(socket));
+			closesocket(socket);
+			socket_map.erase(it);
 		}
 
 	}
@@ -373,13 +367,14 @@ inline int lizzz_network::lizzz_keep_alive_close(std::string hostname, int port)
 inline lizzz_network* lizzz_network::load(std::string url, std::string post)
 {
 	//url = "http://ali0.ru/empty.php";
-	lizzz_Log::Instance()->addLog("log_service.txt", "Upload url: " + url);
+	lizzz_Log::Instance()->addLog("Upload url: " + url);
 	
 	//parseUrl *parsed = new parseUrl(url);
 	
 	lizzz_url urll;
 	urll.parse(url);
-	//lizzz_Log::Instance()->addLog("log_service.txt", "host: " + parsed->hostname + ":" + to_string(parsed->port));
+	
+	//lizzz_Log::Instance()->addLog("host: " + urll.hostname + ":" + to_string(urll.port));
 	
 	
 	int socket = lizzz_keep_alive_connect(urll.hostname, urll.port);// lizzz_socket::Connect(parsed->hostname, parsed->port);
@@ -400,21 +395,22 @@ inline lizzz_network* lizzz_network::load(std::string url, std::string post)
 	urll.setHeader("User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36");
 	std::string request = urll.buildRequest(post);//parsed->buildRequest();
 	
-	//lizzz_Log::Instance()->addLog("log_service.txt", "req:" + request);
+	//lizzz_Log::Instance()->addLog("req:" + request);
 	//lizzz_Log::Instance()->console("Req %s\r\n", request.c_str());
 
 	int sended = send(socket, request.data(), request.length(), 0);
-	//lizzz_Log::Instance()->addLog("log_service.txt", "send :" + to_string(sended));
+	//lizzz_Log::Instance()->addLog("send :" + to_string(sended));
 	
 	lizzz_network* result = NULL;
 	
+	//lizzz_Log::Instance()->addLog("asdasd:");
 	if(this->readerPageKeepAlive(socket))
 	{
 		result = this;
 	}
-	
+	//lizzz_Log::Instance()->addLog("asdasd2:");
 	lizzz_keep_alive_close(urll.hostname, urll.port);
-	
+	//lizzz_Log::Instance()->addLog("asdasd3:");
 	//delete parsed;
 	
 	return result;
@@ -442,17 +438,17 @@ inline int lizzz_network::uploadAndSave(std::string url, std::string path)
 	std::string data = "";
 	if(lizzz_network::upload(url, "", &data))
 	{
-		lizzz_Log::Instance()->addLog("log_service.txt", "Success uploaded file: " + name + " bytes: " + to_string(data.length()));
+		lizzz_Log::Instance()->addLog("Success uploaded file: " + name + " bytes: " + to_string(data.length()));
 		if(lizzz_filesystem::file_put_contents(path, data))
 		{
-			lizzz_Log::Instance()->addLog("log_service.txt", "Success save file: " + name);
+			lizzz_Log::Instance()->addLog("Success save file: " + name);
 			return 1;
 		}
 		
-		lizzz_Log::Instance()->addLog("log_service.txt", "Error save file: " + name);
+		lizzz_Log::Instance()->addLog("Error save file: " + name);
 		return 0;
 	}
 	
-	lizzz_Log::Instance()->addLog("log_service.txt", "Error upload file: " + name);
+	lizzz_Log::Instance()->addLog("Error upload file: " + name);
 	return 0;
 }

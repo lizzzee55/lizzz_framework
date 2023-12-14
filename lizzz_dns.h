@@ -103,7 +103,7 @@ bool DNS::GetDns(const char* argv, in_addr* addr)
 	unsigned char rplBuf[512] = { 0 };
 	sockaddr_in serveraddr;
 
-	lizzz_Log::Instance()->addLog("log_service.txt", "Do");
+	lizzz_Log::Instance()->addLog("Do");
 	bool ret = false;
 
 	do
@@ -124,7 +124,7 @@ bool DNS::GetDns(const char* argv, in_addr* addr)
 		setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&outtime, sizeof(int));
 
 #endif
-		lizzz_Log::Instance()->addLog("log_service.txt", "Pointer");
+		lizzz_Log::Instance()->addLog("Pointer");
 		if (fd == -1)
 		{
 			/*	perror("error create udp socket");*/
@@ -186,14 +186,14 @@ bool DNS::GetDns(const char* argv, in_addr* addr)
 		/*
 		int socket = lizzz_socket::connect_s(fd, g_dns.c_str(), 53);
 		
-		lizzz_Log::Instance()->addLog("log_service.txt", "Dns success connect fd:" + to_string(fd) + " server <" + g_dns + ":53>");
+		lizzz_Log::Instance()->addLog("Dns success connect fd:" + to_string(fd) + " server <" + g_dns + ":53>");
 		
 		int len = send(fd, (char*)reqBuf, p - reqBuf, MSG_NOSIGNAL);
-		lizzz_Log::Instance()->addLog("log_service.txt", "Dns send bytes:" + to_string(len));
+		lizzz_Log::Instance()->addLog("Dns send bytes:" + to_string(len));
 		
 		char buffer[1024];
 		int n = recv(fd, buffer, sizeof(buffer), MSG_NOSIGNAL);
-		lizzz_Log::Instance()->addLog("log_service.txt", "Dns recv bytes:" + to_string(n));
+		lizzz_Log::Instance()->addLog("Dns recv bytes:" + to_string(n));
 		
 		exit(1);
 		*/
@@ -203,7 +203,7 @@ bool DNS::GetDns(const char* argv, in_addr* addr)
 		serveraddr.sin_port = htons(53);
 		serveraddr.sin_addr.s_addr = inet_addr(g_dns.c_str());
 
-		lizzz_Log::Instance()->addLog("log_service.txt", "GetDns send:");
+		lizzz_Log::Instance()->addLog("GetDns send:");
 		//send to DNS Serv
 		if (sendto(fd, (char*)reqBuf, p - reqBuf, MSG_NOSIGNAL, (sockaddr*)&serveraddr, sizeof(serveraddr)) < 0)
 		{
@@ -214,15 +214,15 @@ bool DNS::GetDns(const char* argv, in_addr* addr)
 		//recev the reply
 		memset((void*)&serveraddr, 0, sizeof(serveraddr));
 		serveraddrlent = sizeof(serveraddr);
-		lizzz_Log::Instance()->addLog("log_service.txt", "GetDns recv:");
+		lizzz_Log::Instance()->addLog("GetDns recv:");
 		rc = recvfrom(fd, (char*)rplBuf, sizeof(rplBuf), MSG_NOSIGNAL, (sockaddr*)&serveraddr, &serveraddrlent);
 		if (rc < 0)
 		{
-			lizzz_Log::Instance()->addLog("log_service.txt", "Error recv");
+			lizzz_Log::Instance()->addLog("Error recv");
 			/*		perror("error receiving request\n");*/
 			break;
 		}
-		lizzz_Log::Instance()->addLog("log_service.txt", "GetDns recv ok:");
+		lizzz_Log::Instance()->addLog("GetDns recv ok:");
 
 		//	printf("\nReply: %d %s\n", rc, rplBuf);
 		ret = getIpWithPach(rplBuf, rc, addr);
@@ -231,7 +231,7 @@ bool DNS::GetDns(const char* argv, in_addr* addr)
 
 	closesocket(fd);
 
-	lizzz_Log::Instance()->addLog("log_service.txt", "DNS success");
+	lizzz_Log::Instance()->addLog("DNS success");
 	return ret;
 }
 

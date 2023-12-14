@@ -18,8 +18,6 @@ public:
 	std::string method;
 	std::string uri;
 	std::string protocol;
-	
-	bool is_post;
 
 	/* types */
 	std::string contentType;
@@ -71,6 +69,7 @@ protected:
 
 inline Processor::Processor()
 {
+
 	this->is_gzip = 0;
 	this->is_chunked = 0;
 	this->contentLength = -1;
@@ -85,8 +84,7 @@ inline std::string Processor::getHeader(std::string key) {
 };
 
 inline int Processor::parseHeader(std::string header) {
-	//printf("\r\nheader %d %s\r\n", header.length(), header.c_str());
-	
+
 	this->headerList.clear();
 	std::string line;
 
@@ -97,9 +95,7 @@ inline int Processor::parseHeader(std::string header) {
 	while (getline(fd, line))
 	{
 		if (line.length() == 0)
-		{
 			break;
-		}
 
 		if (numLine == 0)
 		{
@@ -120,7 +116,6 @@ inline int Processor::parseHeader(std::string header) {
 				lizzz_functions::trim(val);
 
 				this->headerList[key] = val;
-				
 			}
 		}
 		numLine++;
@@ -128,19 +123,13 @@ inline int Processor::parseHeader(std::string header) {
 
 	return this->parseFirstLine();
 
-	
+
 }
 
 inline int Processor::parseFirstLine()
 {
 	std::vector<std::string> arr;
 	lizzz_functions::lizzz_explode(arr, this->firstLine, " ");
-	
-	if(arr.size() != 3)
-	{
-		printf("non http header\r\n");
-		return 0;
-	}
 
 	bool is_request = 0;
 	bool is_responce = 0;
@@ -164,7 +153,6 @@ inline int Processor::parseFirstLine()
 	if(is_request)
 	{
 		this->method = arr[0];
-		this->is_post = (this->method.find("POST") == 0) ? 1 : 0;
 		this->uri = arr[1];
 		this->protocol = arr[2];
 		this->parseUri(this->uri);
@@ -223,7 +211,7 @@ inline void Processor::serializeHeader()
 	this->host = this->getHeader("host");
 	this->port = 80;
 	
-	//lizzz_Log::Instance()->addLog("log_service.txt", "transferEncoding: " + transferEncoding);
+	//lizzz_Log::Instance()->addLog("transferEncoding: " + transferEncoding);
 
 	if (this->host.length() > 0)
 	{
