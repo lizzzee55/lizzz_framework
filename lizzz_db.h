@@ -411,7 +411,7 @@ inline int db_lizzz::update(const char *query)
 		std::cout << " (MySQL error code: " << e.getErrorCode();
 		std::cout << ", SQLState: " << e.getSQLState() << " )" << std::endl;
 	}
-
+	pthread_mutex_unlock(&mutex);
 	std::map< std::string, std::string > output;
 	db_resource* resource = db_lizzz::query("SELECT LAST_INSERT_ID() AS id");
 	
@@ -420,7 +420,7 @@ inline int db_lizzz::update(const char *query)
 		result = 1;//atoi(it->second.c_str());
 	}
 
-	pthread_mutex_unlock(&mutex);
+	
 	return result;
 }
 
