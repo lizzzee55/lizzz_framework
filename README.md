@@ -1,6 +1,7 @@
 C++ for your first application
 
 How to compile
+
 g++ -w -DUNICODE -DWIN32 -s -static -static-libgcc -static-libstdc++ *.cpp  -o console.exe -I./../lizzz_framework -lws2_32 -lcrypt32
 
 Hello world!
