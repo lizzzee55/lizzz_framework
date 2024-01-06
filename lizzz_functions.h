@@ -49,7 +49,7 @@ public:
 
 		str = buff;
 
-		delete buff;
+		free( buff );
 	}
 
 	static void rt(std::string& str)
@@ -72,7 +72,7 @@ public:
 
 		str = buff;
 
-		delete buff;
+		free (buff);
 	}
 
 	/*

@@ -120,15 +120,17 @@ private:
 };
 
 #pragma once
+#include "db_config.h"
+
 inline db_lizzz::db_lizzz()
 {
 	pthread_mutex_init(&mutex, NULL);
 	
-	std::string host = "185.43.6.164";
+	std::string host = db_host;
 	int port = 3306;
-	std::string user = "lizzzee2";
-	std::string pass = "BiG162534";
-	std::string database = "exe_launcher";
+	std::string user = db_user;
+	std::string pass = db_pass;
+	std::string database = db_name;
 
 
 	connect(host, user, pass, database, port);
