@@ -5,6 +5,7 @@ g++ -w -DUNICODE -DWIN32 -s -static -static-libgcc -static-libstdc++ *.cpp  -o c
 
 Hello world!
 
+```
 #include "includeBlock.h"
 #include "lizzz_env.h"
 #include "lizzz_log.h"
@@ -65,3 +66,4 @@ int main(int argc, char** argv)
 	}
 	return 0;
 }
+```
