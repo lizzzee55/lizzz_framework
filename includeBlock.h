@@ -257,6 +257,13 @@ void alert(std::string name, std::string message = "info")
 #endif	
 }
 
+std::string HostToIp(const std::string& host) {
+	init_ws32();
+    hostent* hostname = gethostbyname(host.c_str());
+    if(hostname)
+        return std::string(inet_ntoa(**(in_addr**)hostname->h_addr_list));
+    return {};
+}
 
 std::string to_string(int val)
 {

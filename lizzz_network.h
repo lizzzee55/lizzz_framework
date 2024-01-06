@@ -14,7 +14,6 @@ public:
 
 class lizzz_network
 {
-	DECLARE_SINGLETON(lizzz_network)
 public:
 	lizzz_network();
 	~lizzz_network();
@@ -22,9 +21,6 @@ public:
 	int lizzz_keep_alive_connect(std::string hostname, int port);
 	
 	lizzz_network* load(std::string url, std::string post);
-	
-	static int upload(std::string url, std::string post, std::string *data);
-	static int uploadAndSave(std::string url, std::string path);
 	
 	std::string name;
 	std::string jibril;
@@ -43,8 +39,6 @@ private:
 	bool need_close;
 
 	
-	std::map<std::string, int> socket_map;
-	
 private:
 	pthread_mutex_t mutex;
 };
@@ -55,6 +49,65 @@ private:
 #include "lizzz_url.h"
 //#include "compressor.h"
 
+class list_socket_map
+{
+	DECLARE_SINGLETON(list_socket_map)
+public:
+	list_socket_map() {
+		pthread_mutex_init(&mutex, NULL);
+	};
+	
+	~list_socket_map() {
+		pthread_mutex_destroy(&mutex);
+	};
+	
+	void set(std::string key, int val)
+	{
+		pthread_mutex_lock(&mutex);
+		
+		list[key] = val;
+	
+		pthread_mutex_unlock(&mutex);
+
+	}
+	
+	int get(std::string key)
+	{
+		int result = 0;
+		pthread_mutex_lock(&mutex);
+		
+		std::map< std::string, int >::iterator it = list.find(key);
+		if(it != list.end())
+		{
+			result = it->second;
+		}
+	
+		pthread_mutex_unlock(&mutex);
+		
+		return result;
+	}
+	
+	int remove(std::string key)
+	{
+		int result = 0;
+		pthread_mutex_lock(&mutex);
+		
+		std::map< std::string, int >::iterator it = list.find(key);
+		if(it != list.end())
+		{
+			result = it->second;
+			list.erase(it);
+		}
+	
+		pthread_mutex_unlock(&mutex);
+		
+		return result;
+	}
+	
+private:
+	std::map< std::string, int > list;
+	pthread_mutex_t mutex;
+};
 
 
 inline lizzz_network::lizzz_network()
@@ -81,9 +134,6 @@ inline lizzz_network* lizzz_network::progress(void(*responce_callback)(std::stri
 	return this;
 }
 
-
-
-
 inline int lizzz_network::readerPageKeepAlive(int socket)
 {
 	std::string header = "";
@@ -107,6 +157,7 @@ inline int lizzz_network::readerPageKeepAlive(int socket)
 		
 		if (n <= 0)
 		{
+			//lizzz_Log::Instance()->addLog("recv1 <= 0");
 			this->need_close = true;
 			break;
 		}
@@ -153,6 +204,7 @@ inline int lizzz_network::readerPageKeepAlive(int socket)
 	if (transferEncoding.find("chunked") == 0) {
 		
 		//printf("Chunk content\r\n");
+		//lizzz_Log::Instance()->addLog("Chunk content");
 		
 		int chunkLen = 0;
 		int startChunkBlock = 0;
@@ -174,7 +226,7 @@ inline int lizzz_network::readerPageKeepAlive(int socket)
 				if (body[n] == 13 && body[n + 1] == 10) { //Если найден чунк пересчитываем конец.
 					
 					chunkLen = strtol(chunk.c_str(), NULL, 16);
-					
+					//lizzz_Log::Instance()->addLog("chunkLen: " + to_string(chunkLen));
 					startChunkBlock = n + 2;
 					endChunkBlock = startChunkBlock + chunkLen;
 					break;
@@ -186,6 +238,7 @@ inline int lizzz_network::readerPageKeepAlive(int socket)
 			}
 
 			if (chunkLen == 0) { //если найден чунк с концом больше не загужаем.
+				//lizzz_Log::Instance()->addLog("chunkLen 0");
 				break;
 			}
 			//int chunkOffset = chunk.length() + 2;
@@ -193,11 +246,12 @@ inline int lizzz_network::readerPageKeepAlive(int socket)
 
 
 			while (endChunkBlock >= body.length()) {
-
+				lizzz_Log::Instance()->addLog("endChunkBlock >= body.length()");
 				int len = recv(socket, buffer, sizeof buffer, MSG_NOSIGNAL); 
 				if (len <= 0) {
 					this->need_close = true;
 					break;
+					//lizzz_Log::Instance()->addLog("recv <= 0");
 				}
 				
 				if (len > 0) //если получили данные отправляем в калбэк
@@ -223,7 +277,7 @@ inline int lizzz_network::readerPageKeepAlive(int socket)
 	} 
 	else if (contentLength > 0)
 	{
-		lizzz_Log::Instance()->addLog("ContentLength: " + to_string(contentLength) + " BodyLen: " + to_string(body.length()));
+		//lizzz_Log::Instance()->addLog("ContentLength: " + to_string(contentLength) + " BodyLen: " + to_string(body.length()));
 		
 		int currentLen = body.length();
 		if (currentLen < contentLength) {
@@ -301,6 +355,8 @@ inline int lizzz_network::readerPageKeepAlive(int socket)
 	
 	this->result = data;
 	
+	lizzz_Log::Instance()->addLog("Loaded bytes: " + to_string(this->result.length()));
+	
 	return 1;
 }
 
@@ -310,7 +366,7 @@ inline int lizzz_network::lizzz_keep_alive_connect(std::string hostname, int por
 {
 	std::string key = hostname + ":" + to_string(port);
 	
-	int tmp_socket = socket_map[key];
+	int tmp_socket = list_socket_map::Instance()->get(key);
 	
 	//alert(to_string(tmp_socket));
 	if(tmp_socket)
@@ -319,7 +375,7 @@ inline int lizzz_network::lizzz_keep_alive_connect(std::string hostname, int por
 	}
 	
 	int socket = lizzz_socket::Connect(hostname, port);
-	lizzz_Log::Instance()->addLog("gd");
+	//lizzz_Log::Instance()->addLog("gd");
 	if(socket <= 0)
 	{
 		lizzz_Log::Instance()->addLog("Error connect to " + hostname + ":" + to_string(port));
@@ -329,9 +385,7 @@ inline int lizzz_network::lizzz_keep_alive_connect(std::string hostname, int por
 	lizzz_Log::Instance()->addLog("Success connect to " + hostname + ":" + to_string(port));
 	//printf("Create socket %d %s:%d\r\n", socket, hostname.c_str(), port);
 	
-	pthread_mutex_lock(&mutex);
-	socket_map[key] = socket;
-	pthread_mutex_unlock(&mutex);
+	list_socket_map::Instance()->set(key, socket);
 	
 	this->need_close = false;
 	
@@ -341,33 +395,19 @@ inline int lizzz_network::lizzz_keep_alive_connect(std::string hostname, int por
 
 inline int lizzz_network::lizzz_keep_alive_close(std::string hostname, int port)
 {
-	pthread_mutex_lock(&mutex);
-	
+
 	std::string key = hostname + ":" + to_string(port);
-
-	if(this->need_close)
-	{
-		
-		
-		std::map< std::string, int >::iterator it = socket_map.find(key);
-		if(it != socket_map.end())
-		{
-			int socket = it->second;
-			lizzz_Log::Instance()->addLog("Close socket " + to_string(socket));
-			closesocket(socket);
-			socket_map.erase(it);
-		}
-
-	}
 	
-	pthread_mutex_unlock(&mutex);
+	int socket = list_socket_map::Instance()->remove(key);
+	closesocket(socket);
+	
 	return 1;
 }
 
 inline lizzz_network* lizzz_network::load(std::string url, std::string post)
 {
 	//url = "http://ali0.ru/empty.php";
-	lizzz_Log::Instance()->addLog("Upload url: " + url);
+	
 	
 	//parseUrl *parsed = new parseUrl(url);
 	
@@ -379,6 +419,7 @@ inline lizzz_network* lizzz_network::load(std::string url, std::string post)
 	
 	int socket = lizzz_keep_alive_connect(urll.hostname, urll.port);// lizzz_socket::Connect(parsed->hostname, parsed->port);
 
+	lizzz_Log::Instance()->addLog("Upload url: " + url + " socket: " + to_string(socket));
 	if (socket <= 0) 
 	{
 		return 0;
@@ -396,7 +437,7 @@ inline lizzz_network* lizzz_network::load(std::string url, std::string post)
 	std::string request = urll.buildRequest(post);//parsed->buildRequest();
 	
 	//lizzz_Log::Instance()->addLog("req:" + request);
-	//lizzz_Log::Instance()->console("Req %s\r\n", request.c_str());
+	//lizzz_Log::Instance()->addLog("Req: " + request);
 
 	int sended = send(socket, request.data(), request.length(), 0);
 	//lizzz_Log::Instance()->addLog("send :" + to_string(sended));
@@ -416,27 +457,26 @@ inline lizzz_network* lizzz_network::load(std::string url, std::string post)
 	return result;
 }
 
-inline int lizzz_network::upload(std::string url, std::string post, std::string *data)
+static int lizzz_upload(std::string url, std::string post, std::string &data)
 {
+	data = "";
 	
-	int result = 0;
-	lizzz_network *model = lizzz_network::Instance();
-	
-	if(model->load(url, post) != NULL)
+	lizzz_network net;
+	if(net.load(url, post))
 	{
-		*data = model->result;
-		result = 1;
+		data = net.result;
+		return 1;
 	}
-	//delete model;
-	return result;
+	
+	return 0;
+	
 }
 
-
-inline int lizzz_network::uploadAndSave(std::string url, std::string path)
+static int lizzz_upload_file(std::string url, std::string path)
 {
 	std::string name = lizzz_functions::getNameByPath(path);
 	std::string data = "";
-	if(lizzz_network::upload(url, "", &data))
+	if(lizzz_upload(url, "", data))
 	{
 		lizzz_Log::Instance()->addLog("Success uploaded file: " + name + " bytes: " + to_string(data.length()));
 		if(lizzz_filesystem::file_put_contents(path, data))

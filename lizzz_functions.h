@@ -11,6 +11,7 @@ public:
 	static std::string w_char_to_string(wchar_t *str);
 	static const wchar_t* string_to_wchar(std::string str);
 	static std::vector< char* > explode_fast(std::string str, const char *delim);
+	static int gnl(char* &source, char* &line);
 	
 	//static int lizzz_explode(std::vector< std::string > &output, std::string str, const char *delim);
 	static int explode_twice(std::vector< std::string > &output, std::string str, std::string delim);
@@ -139,6 +140,47 @@ inline const wchar_t* lizzz_functions::string_to_wchar(std::string str)
 
 	return wc;
 
+}
+
+inline int lizzz_functions::gnl(char* &source, char* &line)
+{
+	static int pos = 0;
+	static int line_num = 0;
+
+	if(line != 0) free(line);
+
+	char c;
+	int i = 0;
+	int trim = 0;
+	while(1)
+	{
+		c = source[pos++];
+
+		if(c == 0)
+		{
+			return 0;
+		}
+
+		if(c == '\n')
+		{
+			if(pos > 0 && source[pos - 2] == '\r')
+			{
+				trim = 1;
+			}
+			break;
+		}
+		
+		i++;
+		
+	}
+
+	line = (char*)malloc(i);
+	memcpy(line, source + pos - 1 - i, i - 1);
+	line[i - trim] = 0;
+
+	line_num++;
+
+	return 1;
 }
 
 static int find_pos(const char* buf, const char* delim)

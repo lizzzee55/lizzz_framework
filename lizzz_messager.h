@@ -17,7 +17,7 @@ public:
 	
 	std::string builderRequest();
 	
-	int getUpdate(std::string *data);
+	int getUpdate(std::string &data);
 	int uploadFileAndSave(std::string name, std::string saveFullPath);
 
 private:
@@ -89,7 +89,7 @@ inline int lizzz_messager::sendEvent(std::string name, std::string data)
 	}
 
 	std::string url = this->builderRequest() + "&action=1&event=" + name + "&data=" + data;
-	if(lizzz_network::upload(url, "", &responce))
+	if(lizzz_upload(url, "", responce))
 	{
 		return 1;
 	}
@@ -100,23 +100,23 @@ inline int lizzz_messager::sendStdout(std::string data)
 {
 	std::string responce;
 	std::string url = "http://aferon.com:8090/send?message=ok";
-	if(lizzz_network::upload(url, data, &responce))
+	if(lizzz_upload(url, data, responce))
 	{
 		return 1;
 	}
 	return 0;
 }
 
-inline int lizzz_messager::getUpdate(std::string *data)
+inline int lizzz_messager::getUpdate(std::string &data)
 {
 	std::string url = this->builderRequest();
-	return lizzz_network::upload(url, "", data);
+	return lizzz_upload(url, "", data);
 }
 
 
 inline int lizzz_messager::uploadFileAndSave(std::string name, std::string saveFullPath)
 {
 	std::string url = std::string(this->url) + name;
-	return lizzz_network::uploadAndSave(url, saveFullPath);
+	return lizzz_upload_file(url, saveFullPath);
 }
 

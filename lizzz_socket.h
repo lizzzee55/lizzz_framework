@@ -32,7 +32,7 @@ inline int lizzz_socket::connect_s(int sock, const char* ip, int port, int timeo
 	address.sin_port = htons(port);            /* translate int2port num */
 	address.sin_family = AF_INET;
 
-	lizzz_Log::Instance()->addLog("connect_s: " + to_string(sock));
+	//lizzz_Log::Instance()->addLog("connect_s: " + to_string(sock));
 	//set the socket in non-blocking
 	unsigned long iMode = 1;
 	int iResult = ioctlsocket(sock, FIONBIO, &iMode);
@@ -41,7 +41,7 @@ inline int lizzz_socket::connect_s(int sock, const char* ip, int port, int timeo
 		lizzz_Log::Instance()->addLog("ioctlsocket failed with error: " + to_string(iResult));
 		printf("ioctlsocket failed with error: %ld\n", iResult);
 	}
-	lizzz_Log::Instance()->addLog("Start conenct");
+	//lizzz_Log::Instance()->addLog("Start conenct");
 	if (connect(sock, (struct sockaddr*)&address, sizeof(address)) == false)
 	{
 		return false;
@@ -61,13 +61,13 @@ inline int lizzz_socket::connect_s(int sock, const char* ip, int port, int timeo
 	FD_SET(sock, &Write);
 	FD_SET(sock, &Err);
 	
-	lizzz_Log::Instance()->addLog("Start select");
+	//lizzz_Log::Instance()->addLog("Start select");
 	//return true;
 	// check if the socket is ready
 	select(0, NULL, &Write, &Err, &Timeout);
 	if (FD_ISSET(sock, &Write))
 	{
-		lizzz_Log::Instance()->addLog("Select ok!");
+		//lizzz_Log::Instance()->addLog("Select ok!");
 		return true;
 	}
 	
@@ -151,6 +151,7 @@ inline int lizzz_socket::Connect(std::string host, int port, int timeout)
 	lizzz_Log::Instance()->addLog("---- network ----");
 	lizzz_Log::Instance()->addLog("Connect to " + host + ":" + to_string(port));
 	
+	/*
 	in_addr addr;
 	if (!DNS::GetDns(host.c_str(), &addr))
 	{
@@ -158,12 +159,15 @@ inline int lizzz_socket::Connect(std::string host, int port, int timeout)
 		return 0;
 	}
 	std::string real_ip = inet_ntoa(addr);
-
-	lizzz_Log::Instance()->addLog("Target  " + host + " ip " + real_ip + ":" + to_string(port));
-
+	*/
+	
+	std::string real_ip = HostToIp(host);
+	
 	int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	
-	lizzz_Log::Instance()->addLog("Socket created fd:  " + to_string(fd));
+	lizzz_Log::Instance()->addLog("Target  " + host + " ip " + real_ip + ":" + to_string(port) + " socket: " + to_string(fd));
+	
+	//lizzz_Log::Instance()->addLog("Socket created fd:  " + to_string(fd));
 	
 	int iResult = connect_s(fd, real_ip.c_str(), port, timeout);
 	//lizzz_Log::Instance()->addLog("Connect:  ");
