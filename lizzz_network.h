@@ -138,6 +138,8 @@ inline int lizzz_network::readerPageKeepAlive(int socket)
 {
 	std::string header = "";
 	std::string body = "";
+	
+	int byte_loaded = 0;
 
 	int startBody = 0;
 	int contentLength = 0;
@@ -161,6 +163,8 @@ inline int lizzz_network::readerPageKeepAlive(int socket)
 			this->need_close = true;
 			break;
 		}
+		
+		byte_loaded += n;
 
 		header.append(buffer, n);
 		
@@ -174,9 +178,9 @@ inline int lizzz_network::readerPageKeepAlive(int socket)
 				this->progress_callback(conf);
 		}
 
-		if (endHeader == 0 && (startBody = header.find("\r\n\r\n"))) {
+		if (endHeader == 0 && (startBody = header.find("\r\n\r\n")) > 0) {
 			startBody += 4;
-			
+			//printf("body <%d>\r\n", startBody);
 			body = header.substr(startBody, header.length() - startBody);
 
 			endHeader = 1;
@@ -196,6 +200,12 @@ inline int lizzz_network::readerPageKeepAlive(int socket)
 			break;
 
 		}
+	}
+	
+	if(byte_loaded == 0)
+	{
+		printf("Error loaded 0 byte\r\n");
+		return 0;
 	}
 
 	//lizzz_Log::Instance()->addLog("Header: " + header);
