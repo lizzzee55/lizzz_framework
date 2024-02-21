@@ -155,6 +155,7 @@ inline int Processor::parseFirstLine()
 	if(is_request)
 	{
 		this->method = arr[0];
+		this->is_post = (this->method.find("POST") == 0) ? 1 : 0;
 		this->uri = arr[1];
 		this->protocol = arr[2];
 		this->parseUri(this->uri);
