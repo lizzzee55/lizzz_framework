@@ -3,7 +3,7 @@
 #include <fcntl.h>
 #include <vector>
 
-#ifdef WIN32
+#ifdef SP_WINDOWS
 #include <io.h>
 #include <process.h>
 #include <direct.h>
@@ -56,7 +56,7 @@ inline int lizzz_env::init()
 inline std::string lizzz_env::getInstallDir(std::string name)
 {
 	std::string projectDir;
-#ifdef WIN32
+#ifdef SP_WINDOWS
 	projectDir = getenv("APPDATA");
 	projectDir += "\\" + name;
 #else
@@ -132,7 +132,7 @@ inline FileObj lizzz_env::FileInfo()
 	FileObj result;
 	char ownPth[1024];
 
-#ifdef WIN32
+#ifdef SP_WINDOWS
 	
 	// Will contain exe path
 	HMODULE hModule = GetModuleHandle(NULL);
@@ -203,7 +203,7 @@ inline std::string lizzz_env::getFileName() {
 inline std::string lizzz_env::getInfoSystem()
 {
 	
-#ifdef WIN32
+#ifdef SP_WINDOWS
 	bool rez = false;
 	uint64_t uint_out = 0;
 
@@ -258,7 +258,7 @@ inline bool lizzz_env::get_registry_value( uint32_t value_type, const std::strin
 	uint_out = 0;
 	bool read_rez = false;
 
-#ifdef WIN32
+#ifdef SP_WINDOWS
 
 	char str_value[1000] = { 0 };
 	uint64_t u64_value = 0;

@@ -3,9 +3,28 @@
 
 #define CRYPTOPP_NO_CXX11
 
-#ifdef WIN32
+#if defined( _WINDOWS ) || defined( _SP_WINDOWS ) || defined( SP_WINDOWS ) || defined( _WIN64 )
+
+#	define SP_WINDOWS
+
+#elif defined( unix ) || defined( __unix__ ) || defined( __unix )
+
+#	define SP_UNIX
+
+#	if defined( ANDROID ) || defined( __ANDROID__ )
+#		define SP_ANDROID
+#	elif defined( linux ) || defined( __linux__ ) || defined( __linux )
+#		define SP_LINUX
+#	endif // ANDROID / linux
+
+#else
+#	error Unknown platform!
+#endif
+
+#ifdef SP_WINDOWS
 #include <winsock2.h>
 #pragma comment(lib,"ws2_32.lib")
+#pragma comment(lib,"crypt32.lib")
 #include <ws2tcpip.h>
 #include "windows.h"
 #include <tchar.h>
@@ -62,7 +81,7 @@ typedef void* LPVOID;
 #include <vector>
 #include <fcntl.h>
 
-#ifdef WIN32
+#ifdef SP_WINDOWS
 
 #include <mutex>
 
@@ -140,7 +159,7 @@ size_t stacksz = MAX(8192, PTHREAD_STACK_MIN);
 HANDLE createThread(LPTHREAD_START_ROUTINE fnRoutine, LPVOID lpParameter)
 {
 
-#ifdef WIN32
+#ifdef SP_WINDOWS
     DWORD m_dwThreadId;
     return ::CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)fnRoutine, lpParameter, 0, &m_dwThreadId);
 #else
@@ -173,7 +192,7 @@ void joinThread(HANDLE pt)
 {
     if(pt)
     {
-#ifdef WIN32
+#ifdef SP_WINDOWS
         ::WaitForSingleObject(pt, INFINITE);
 #else
         pthread_join(pt, 0);
@@ -203,7 +222,7 @@ void LOG(const char *fmt, ...)
 	va_end(args);
 
 	printf(str);
-	#ifdef WIN32
+	#ifdef SP_WINDOWS
 	OutputDebugStringA(str);
 	#endif
 }
@@ -225,7 +244,7 @@ long long millis () {
 
 static int lizzz_sleep(int ms)
 {
-#ifdef WIN32
+#ifdef SP_WINDOWS
 	Sleep(ms);
 #else
 	usleep(ms * 1000);
@@ -237,7 +256,7 @@ int is_init = 0;
 int init_ws32()
 {
 	if (is_init) return 1;
-#ifdef WIN32
+#ifdef SP_WINDOWS
 	WSADATA wsaData;
 	int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
 	if (iResult != 0) {
@@ -252,7 +271,7 @@ int init_ws32()
 
 void alert(std::string name, std::string message = "info")
 {
-#ifdef WIN32
+#ifdef SP_WINDOWS
 	MessageBoxA(NULL, name.c_str(), message.c_str(), 0);
 #endif	
 }
@@ -298,7 +317,7 @@ void wcharToChar(std::wstring input, std::string& out) //Конфертация wchar_t* в 
 
 }
 
-#ifdef WIN32
+#ifdef SP_WINDOWS
 void CharToWchar(std::string input, std::wstring &output) //Конфертация из char* (cp1251) to wchar_t*
 {
 	output = L"";

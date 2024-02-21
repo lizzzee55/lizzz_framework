@@ -1,0 +1,20 @@
+WS32 init success!
+---- network ----
+Connect to aferon.com:80
+Target  aferon.com ip 185.43.6.164:80 socket: 548
+Conenct ok!
+Success connect:aferon.com ip:185.43.6.164 port:80 fd:548
+Success connect to aferon.com:80
+Upload url: http://aferon.com/1.webm socket: 548
+Loaded bytes: 47188
+Success save file: out.txt
+WS32 init success!
+---- network ----
+Connect to aferon.com:80
+Target  aferon.com ip 185.43.6.164:80 socket: 520
+Conenct ok!
+Success connect:aferon.com ip:185.43.6.164 port:80 fd:520
+Success connect to aferon.com:80
+Upload url: http://aferon.com/1.webm socket: 520
+Loaded bytes: 47188
+Success save file: out.txt

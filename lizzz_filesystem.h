@@ -20,7 +20,7 @@ public:
 
 #pragma once
 
-#ifndef WIN32
+#ifndef SP_WINDOWS
 #include <dirent.h>
 #include <errno.h>
 #include <spawn.h>
@@ -54,7 +54,7 @@ inline int lizzz_filesystem::listDir(std::vector< std::string > &out, std::strin
 	
 	lizzz_Log::Instance()->addLog("List dir: " + path);
 	int count = 0;
-#ifdef WIN32
+#ifdef SP_WINDOWS
 
 	path = path + "/*.*";
 	WIN32_FIND_DATA fd;
@@ -104,7 +104,7 @@ inline int lizzz_filesystem::listDir(std::vector< std::string > &out, std::strin
 
 inline int lizzz_filesystem::is_dir(std::string dir)
 {
-#ifdef WIN32
+#ifdef SP_WINDOWS
 	DWORD dwAttrib = GetFileAttributesA(dir.c_str());
 
 	return (dwAttrib != INVALID_FILE_ATTRIBUTES &&
@@ -115,7 +115,7 @@ inline int lizzz_filesystem::is_dir(std::string dir)
 
 inline int lizzz_filesystem::create_dir(std::string path)
 {
-#ifdef WIN32
+#ifdef SP_WINDOWS
 	mkdir(path.c_str());
 #else
 	mkdir(path.c_str(), 0777);
@@ -192,7 +192,7 @@ inline int lizzz_filesystem::file_put_contents(std::string file_name, std::strin
 inline int lizzz_filesystem::launchProcess(std::string app, std::string arg, int isHide, bool isWait)
 {
 
-#ifdef WIN32
+#ifdef SP_WINDOWS
 	// Prepare handles.
 	STARTUPINFO si;
 	
@@ -310,7 +310,7 @@ inline int lizzz_filesystem::launchProcess(std::string app, std::string arg, int
 inline wchar_t* lizzz_filesystem::CharToLizzz(const char* char_string)
 {
 	wchar_t* res;
-#ifdef WIN32
+#ifdef SP_WINDOWS
 	
 	DWORD res_len = MultiByteToWideChar(1251, 0, char_string, -1, NULL, 0);
 	res = (wchar_t*)GlobalAlloc(GPTR, (res_len + 1) * sizeof(WCHAR));

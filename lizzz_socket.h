@@ -16,7 +16,7 @@ private:
 #include "lizzz_dns.h"
 
 
-#ifdef WIN32
+#ifdef SP_WINDOWS
 
 inline int lizzz_socket::connect_s(int sock, const char* ip, int port, int timeout)
 {

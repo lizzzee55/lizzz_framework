@@ -1,0 +1,15 @@
+Clear log
+Log firset line!!
+Start: console.exe
+Count argv: 1
+Param: console.exe
+WS32 init success!
+---- network ----
+Connect to aferon.com:80
+Target  aferon.com ip 185.43.6.164:80 socket: 540
+Conenct ok!
+Success connect:aferon.com ip:185.43.6.164 port:80 fd:540
+Success connect to aferon.com:80
+Upload url: http://aferon.com/1.webm socket: 540
+Loaded bytes: 47188
+Success save file: out.txt

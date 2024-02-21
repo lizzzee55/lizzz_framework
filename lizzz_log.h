@@ -91,7 +91,7 @@ inline void lizzz_Log::addLog(std::string data)
 	data += "\n";
 	printf(data.c_str());
 	
-#ifdef WIN32
+#ifdef SP_WINDOWS
 	OutputDebugStringA(data.c_str());
 #endif
 

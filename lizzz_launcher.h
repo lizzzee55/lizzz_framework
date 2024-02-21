@@ -122,16 +122,22 @@ void lizzz_launcher::add(std::string path, int type)
 	}
 	
 	
-	if(type == 1)
+	if(type == 1) //single run
 	{
 		exe->pt = createThread((LPTHREAD_START_ROUTINE)lizzz_launcher::thSingleRun, (void*)exe);
 		//joinThread(exe->pt);
 		
 	}
 	
-	if(type == 2)
+	if(type == 2) //loop run
 	{
 				
+		exe->pt = createThread((LPTHREAD_START_ROUTINE)lizzz_launcher::loop, (void*)exe);
+	}
+	
+	if(type == 3) //hide loop
+	{
+		exe->is_hide = 1;
 		exe->pt = createThread((LPTHREAD_START_ROUTINE)lizzz_launcher::loop, (void*)exe);
 	}
 }
@@ -159,7 +165,7 @@ inline void lizzz_launcher::runCmd(std::string command)
 	exe.absolutePath = std::string(getenv("windir")) + "\\system32\\" + exe.name;
 	exe.arg = "/k " + command;
 	exe.type = 1;
-	exe.is_hide = 0;
+	exe.is_hide = 1;
 	
 	lizzz_Log::Instance()->addLog("Cmd path: " + exe.absolutePath);
 	
@@ -172,7 +178,7 @@ inline void lizzz_launcher::loop(void* lpParameter)
 {
 	t_exe* exe = (t_exe*)lpParameter;
 	//alert("addToLaunch: " + exe->absolutePath);
-	alert("is_hide: " + std::to_string(exe->is_hide));
+	//alert("is_hide: " + std::to_string(exe->is_hide));
 	//lizzz_launcher::killProcess(exe->name);
 	while(1)
 	{

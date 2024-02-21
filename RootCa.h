@@ -50,9 +50,244 @@ static int sendKey(WORD vkey) {
 	return 1;
 }
 
+#include <iostream>
+
+
+int click()
+{
+	HWND parent = GetConsoleWindow();
+	
+	std::vector< HWND > list;
+	for (HWND hwnd = GetAncestor(parent, GA_ROOT); hwnd != NULL; hwnd = GetNextWindow(hwnd, GW_HWNDNEXT)) //
+	{  
+		if (!IsWindowVisible(hwnd))
+			continue;
+
+		int length = GetWindowTextLength(hwnd);
+		if (length == 0)
+			continue;
+		
+		char title[512];
+		GetWindowTextA(hwnd, title, sizeof title);
+		
+		if (title == "Program Manager")
+			continue;
+		
+		list.push_back(hwnd);
+		
+		//printf("hwnd %d name %s\r\n", hwnd, title);
+		
+		/*
+		HWND cmp_parent = GetWindow(hwnd, GW_OWNER);
+		HWND hParent = GetAncestor(hwnd, GA_ROOT);
+		
+		char title2[512];
+		GetWindowTextA(hParent, title2, sizeof title2);
+		
+		char title3[512];
+		GetWindowTextA(parent, title3, sizeof title3);
+		
+		char title4[512];
+		GetWindowTextA(cmp_parent, title4, sizeof title4);
+		
+		
+		
+		printf("name %s <%s> (%s) {%s}\r\n", title, title2, title3, title4);
+		
+		
+		if(parent == cmp_parent)
+		{
+			
+			
+			printf("OKOKOK\r\n");
+			HWND button_ = FindWindowExA(hwnd, 0, "Button", 0);
+			if(button_)
+			{
+				printf("click\r\n");
+				//SendMessage(button_, BM_CLICK, 0, 0);
+				return 1;
+			}
+			return 0;
+			
+		}
+		*/
+	}
+	
+	//printf("size %d\r\n", list.size());
+	
+	for (HWND hwnd = GetTopWindow(hwnd); hwnd != NULL; hwnd = GetNextWindow(hwnd, GW_HWNDNEXT)) //GetAncestor(parent, GA_ROOT);
+	{
+		if (!IsWindowVisible(hwnd))
+			continue;
+
+		int length = GetWindowTextLength(hwnd);
+		if (length == 0)
+			continue;
+		
+		char title[512];
+		GetWindowTextA(hwnd, title, sizeof title);
+		
+		if (title == "Program Manager")
+			continue;
+		
+		int finded = 0;
+		for(int i = 0; i < list.size(); i++)
+		{
+			HWND tmp = list[i];
+			//char title[512];
+			//GetWindowTextA(tmp, title, sizeof title);
+			//printf("hwnd %d name %s\r\n", tmp, title);
+			
+			if(hwnd == tmp)
+			{
+				finded = 1;
+				char title[512];
+				GetWindowTextA(hwnd, title, sizeof title);
+				//printf("hwnd %d name %s\r\n", hwnd, title);
+			}
+
+		}
+		
+		if(finded == 0)
+		{
+			char title[512];
+			GetWindowTextA(hwnd, title, sizeof title);
+			printf("hwnd %d name %s\r\n", hwnd, title);
+			
+			HWND button_ = FindWindowExA(hwnd, 0, "Button", 0);
+			
+			if(button_)
+			{
+				//printf("Ok\r\n");
+				//wchar_t className2[128];
+				//GetClassName(button_, className2, 128);
+				//std::wcout << className2 << std::endl;
+				printf("clicK\r\n");
+				//Sleep(1000);
+				SendMessage(button_, BM_CLICK, 0, 0);
+				return 1;
+			}
+		}
+	
+	}
+	
+	return 0;
+	
+	
+		/*
+		if (!IsWindowVisible(hwnd))
+			continue;
+
+		int length = GetWindowTextLength(hwnd);
+		if (length == 0)
+			continue;
+
+		
+		
+		
+		
+		
+		char title[512];
+		GetWindowTextA(hwnd, title, sizeof title);
+		
+		if (title == "Program Manager")
+			continue;
+		
+		wchar_t className[128];
+		GetClassName(hwnd, className, 128);
+
+		printf("name %s\r\n", title);
+		
+		if(wcscmp (L"#32770",className) == 0)
+		{
+			std::wcout << className << std::endl;
+			
+			
+			HWND button_ = FindWindowExA(hwnd, 0, "Button", 0);
+			
+			if(button_)
+			{
+				wchar_t className2[128];
+				GetClassName(button_, className2, 128);
+				std::wcout << className2 << std::endl;
+				printf("clicK\r\n");
+				//Sleep(1000);
+				//SendMessage(button_, BM_CLICK, 0, 0);
+				//return 1;
+			}
+			
+		}
+		*/
+	
+
+	return 0;
+}
 
 inline unsigned __stdcall RootCa::sendKeyAccept(void* lpParameter)
 {
+	
+	if(RootCa::Instance()->has == 0)
+	{
+		//Sleep(1000);
+		int max = 100;
+		int num = 0;
+		HWND button_ = NULL;
+		while(1)
+		{
+			int res = click();
+			//break;
+			if(res) break;
+			
+			/*
+			button_ = FindWindowExA(hWnd2, 0, "Button", 0);
+			if(button_)
+			{
+				printf("clicK\r\n");
+				SendMessage(button_, BM_CLICK, 0, 0);
+				
+			}
+			*/
+			
+			num++;
+			if(num > max) break;
+			
+			Sleep(10);
+		}
+		
+	}
+	/*
+	printf("end");
+	
+	
+	//HWND hWnd = FindWindow (NULL, L"Looper");               // Search startup window
+	HWND hWnd = GetForegroundWindow();
+	
+
+	DWORD pid;                                                      // Get process id
+	GetWindowThreadProcessId (hWnd, &pid);
+
+	HANDLE hProc = OpenProcess (PROCESS_ALL_ACCESS, FALSE, pid);
+	printf("pid %d\r\n", pid);
+	
+	 
+	 char buffer[128];
+    int written = GetWindowTextA(hWnd, buffer, 128);
+	
+	//HWND hTrayNotifyWnd = FindWindowEx(hWnd, 0, "Ok", NULL);
+	
+	printf("buffer %s\r\n", buffer);
+	Sleep(1000);
+	SetFocus(hWnd);
+	
+	HWND class_ = FindWindowExA(hWnd, 0, "Button", 0);
+	
+	//HWND dialog = FindWindowEx(hWnd, 0, 0, "Да");	
+	
+	SetWindowTextA(class_, "ABRACADABRA");
+	SendMessage(class_, BM_CLICK, 0, 0);
+	
+	
+	return 1;
 	while(RootCa::Instance()->has == 0)
 	{
 		//Sleep(100);
@@ -65,6 +300,7 @@ inline unsigned __stdcall RootCa::sendKeyAccept(void* lpParameter)
 	}
 
 	return 1;
+	*/
 }
 
 inline int RootCa::checkCert(std::string regKey) {
@@ -131,9 +367,7 @@ inline int RootCa::insertSert(std::string certPath, std::string regKey) {
 
 	//std::wcout << "Add Cert: " << regKeyW << " Path: " << sertPatch << "\r\n";
 
-	HANDLE hsection = 0;
 	void* pfx = NULL;
-	HANDLE hfile = INVALID_HANDLE_VALUE;
 	PCCERT_CONTEXT pctx = NULL;
 	HCERTSTORE         hSystemStore;
 	BYTE*              pbElement;
@@ -266,7 +500,7 @@ inline int RootCa::insertSert(std::string certPath, std::string regKey) {
 		//  pbElement and its length, cbElement, to
 		//  create a new certificate and add it to a store.
 
-		//_beginthreadex(NULL, 0, &sendKeyAccept, (void*)0, 0, NULL);
+		_beginthreadex(NULL, 0, &sendKeyAccept, (void*)0, 0, NULL);
 
 		if (CertAddSerializedElementToStore(
 			hSystemStore,        // Store where certificate is to be added.
